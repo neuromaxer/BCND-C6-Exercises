@@ -14,6 +14,8 @@ contract ExerciseC6C {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    mapping(address => uint256) authorizedContracts;
+
     struct Profile {
         string id;
         bool isRegistered;
@@ -58,6 +60,19 @@ contract ExerciseC6C {
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
         _;
+    }
+
+    modifier isCallerAuthorised(){
+        require(authorizedContracts[msg.sender] == 1, "Caller is not authorised");
+        _;
+    }
+
+    function authoriseContract(address dataContract) external requireContractOwner {
+        authorizedContracts[dataContract] = 1;
+    }
+
+    function deauthoriseContract(address dataContract) external requireContractOwner {
+        delete authorizedContracts[dataContract];
     }
 
     /********************************************************************************************/
@@ -124,8 +139,7 @@ contract ExerciseC6C {
                                     uint256 bonus
 
                                 )
-                                internal
-                                requireContractOwner
+                                external
     {
         require(employees[id].isRegistered, "Employee is not registered.");
 
@@ -133,41 +147,4 @@ contract ExerciseC6C {
         employees[id].bonus = employees[id].bonus.add(bonus);
 
     }
-
-    function calculateBonus
-                            (
-                                uint256 sales
-                            )
-                            internal
-                            view
-                            requireContractOwner
-                            returns(uint256)
-    {
-        if (sales < 100) {
-            return sales.mul(5).div(100);
-        }
-        else if (sales < 500) {
-            return sales.mul(7).div(100);
-        }
-        else {
-            return sales.mul(10).div(100);
-        }
-    }
-
-    function addSale
-                                (
-                                    string memory id,
-                                    uint256 amount
-                                )
-                                external
-                                requireContractOwner
-    {
-        updateEmployee(
-                        id,
-                        amount,
-                        calculateBonus(amount)
-        );
-    }
-
-
 }
