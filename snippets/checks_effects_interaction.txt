@@ -1,0 +1,16 @@
+// checks-effects-Interactions pattern helps to protect against re-entrance attacks when attacker tries to withdraw funds multiple times by repeatedly entering contract from his receiving function 
+
+using SafeMath for uint256;
+mapping(address => uint256) private sales;
+function safeWithdraw(uint256 amount) external {
+    // Checks
+    require(msg.sender == tx.origin, "Contracts not allowed");  // tx.origin will be contract address if contract calls the function. Msg.sender would still be external account (real user) and they'll differ if function is called from contract
+    require(deposits[msg.sender] >= amount, "Insufficient funds");
+    
+    // Effects
+    uint256 amount = sales[msg.sender];
+    sales[msg.sender] = sales[msg.sender].sub(amount);
+    
+    // Interaction
+    msg.sender.transfer(amount);   
+}

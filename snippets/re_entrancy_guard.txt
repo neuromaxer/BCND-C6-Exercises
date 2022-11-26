@@ -1,0 +1,15 @@
+// Re-entrancy Guard prevents a contract function from calling itself multiple times in a single transaction
+
+using SafeMath for uint256;
+uint256 private counter = 1;  // global variable which will persist throughout all stack however deep it is as it's stored in storage (not memory)
+
+modifier entrancyGuard() {
+    counter = counter.add(1);
+    uint256 guard = counter;
+    _;
+    require(guard == counter, "Function called multiple times");  // if contract was called recursively the counter will be incremented inside each recursive call while guard in outer scope will stay the same. When returning to outer scope counter would be greater than guard and you know that contract was called recursively i.e. there was a re-entrancy attack
+}
+
+function safeWithdraw(uint256 amount) external entrancyGuard() {
+    // Withdraw code
+}
