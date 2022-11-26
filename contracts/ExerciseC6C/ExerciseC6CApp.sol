@@ -1,10 +1,11 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.7.0 <0.9.0;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
-import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
+
 
 
 contract ExerciseC6CApp {
@@ -12,7 +13,7 @@ contract ExerciseC6CApp {
 
 
     address private contractOwner;              // Account used to deploy contract
-    ExerciseC6C exerciseC6C;
+    IExerciseC6C exerciseC6C;
 
     modifier requireContractOwner()
     {
@@ -27,7 +28,7 @@ contract ExerciseC6CApp {
                                 public 
     {
         contractOwner = msg.sender;
-        exerciseC6C = ExerciseC6C(dataContract);
+        exerciseC6C = IExerciseC6C(dataContract);
     }
 
 
@@ -52,7 +53,7 @@ contract ExerciseC6CApp {
 
     function addSale
                                 (
-                                    string id,
+                                    string memory id,
                                     uint256 amount
                                 )
                                 external
@@ -67,6 +68,6 @@ contract ExerciseC6CApp {
 
 }
 
-contract ExerciseC6C {
-    function updateEmployee(string id, uint256 sales, uint256 bonus) external;
+interface IExerciseC6C {
+    function updateEmployee(string memory id, uint256 sales, uint256 bonus) external;
 }

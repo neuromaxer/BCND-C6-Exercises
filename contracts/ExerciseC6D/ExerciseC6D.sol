@@ -1,10 +1,10 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.7.0 <0.9.0;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
-import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 contract ExerciseC6D {
@@ -39,6 +39,9 @@ contract ExerciseC6D {
                                                         // the response that majority of the oracles
                                                         // submit
     }
+
+    uint numResponses;
+    mapping (uint => ResponseInfo) responseInfos;
 
     // Track all oracle responses
     // Key = hash(index, flight, timestamp)
@@ -92,13 +95,13 @@ contract ExerciseC6D {
                             payable
     {
         // CODE EXERCISE 1: Require registration fee
-        /* Enter code here */
+        require(msg.value >= REGISTRATION_FEE, "Deposit not enough to cover registration fee");
 
         // CODE EXERCISE 1: Generate three random indexes (range 0-9) using generateIndexes for the calling oracle
-        /* Enter code here */
+        uint8[3] memory indexes = generateIndexes(msg.sender);
 
         // CODE EXERCISE 1: Assign the indexes to the oracle and save to the contract state
-        /* Enter code here */
+        oracles[msg.sender] = indexes;
     }
 
     function getOracle
@@ -108,7 +111,7 @@ contract ExerciseC6D {
                         external
                         view
                         requireContractOwner
-                        returns(uint8[3])
+                        returns(uint8[3] memory)
     {
         return oracles[account];
     }
@@ -131,7 +134,7 @@ contract ExerciseC6D {
     // Generate a request
     function fetchFlightStatus
                         (
-                            string flight,
+                            string memory flight,
                             uint256 timestamp                            
                         )
                         external
@@ -139,18 +142,17 @@ contract ExerciseC6D {
         // Generate a number between 0 - 9 to determine which oracles may respond
 
         // CODE EXERCISE 2: Replace the hard-coded value of index with a random index based on the calling account
-        uint8 index = 0;  /* Replace code here */
+        uint8 index = getRandomIndex(msg.sender);
 
 
         // Generate a unique key for storing the request
         bytes32 key = keccak256(abi.encodePacked(index, flight, timestamp));
-        oracleResponses[key] = ResponseInfo({
-                                                requester: msg.sender,
-                                                isOpen: true
-                                            });
-
+        ResponseInfo storage responseInfo = oracleResponses[key];
+        responseInfo.requester = msg.sender;
+        responseInfo.isOpen = true;
         // CODE EXERCISE 2: Notify oracles that match the index value that they need to fetch flight status
         /* Enter code here */
+        emit OracleRequest(index, flight, timestamp);
 
     }
 
@@ -169,7 +171,7 @@ contract ExerciseC6D {
     function submitOracleResponse
                         (
                             uint8 index,
-                            string flight,
+                            string memory flight,
                             uint256 timestamp,
                             uint8 statusId
                         )
@@ -179,8 +181,8 @@ contract ExerciseC6D {
 
 
         // CODE EXERCISE 3: Require that the response is being submitted for a request that is still open
-        bytes32 key = 0; /* Replace 0 with code to generate a key using index, flight and timestamp */
-
+        bytes32 key = keccak256(abi.encodePacked(index, flight, timestamp));
+        require(oracleResponses[key].isOpen, "Response is closed");
 
         oracleResponses[key].responses[statusId].push(msg.sender);
 
@@ -193,6 +195,7 @@ contract ExerciseC6D {
 
             // CODE EXERCISE 3: Announce to the world that verified flight status information is available
             /* Enter code here */
+            emit FlightStatusInfo(flight, timestamp, statusId, true);
 
             // Save the flight information for posterity
             bytes32 flightKey = keccak256(abi.encodePacked(flight, timestamp));
@@ -202,6 +205,7 @@ contract ExerciseC6D {
 
             // CODE EXERCISE 3: Announce to the world that verified flight status information is available
             /* Enter code here */
+            emit FlightStatusInfo(flight, timestamp, statusId, false);
         }
     }
 
@@ -215,16 +219,16 @@ contract ExerciseC6D {
     // Query the status of any flight
     function viewFlightStatus
                             (
-                                string flight,
+                                string memory flight,
                                 uint256 timestamp
                             )
                             external
                             view
                             returns(uint8)
     {
+            bytes32 flightKey = keccak256(abi.encodePacked(flight, timestamp));
             require(flights[flightKey].hasStatus, "Flight status not available");
 
-            bytes32 flightKey = keccak256(abi.encodePacked(flight, timestamp));
             return flights[flightKey].status;
     }
 
@@ -235,7 +239,7 @@ contract ExerciseC6D {
                                 address account         
                             )
                             internal
-                            returns(uint8[3])
+                            returns(uint8[3] memory)
     {
         uint8[3] memory indexes;
         indexes[0] = getRandomIndex(account);
@@ -261,10 +265,10 @@ contract ExerciseC6D {
                             internal
                             returns (uint8)
     {
-        uint8 maxValue = 10;
+        uint8 maxValue = 5;
 
         // Pseudo random number...the incrementing nonce adds variation
-        uint8 random = uint8(uint256(keccak256(abi.encodePacked(blockhash(block.number - nonce++), account))) % maxValue);
+        uint8 random = uint8(uint256(keccak256(abi.encodePacked(nonce++, account))) % maxValue);
 
         if (nonce > 250) {
             nonce = 0;  // Can only fetch blockhashes for last 256 blocks so we adapt
