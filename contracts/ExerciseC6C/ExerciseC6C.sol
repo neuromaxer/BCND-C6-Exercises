@@ -1,10 +1,10 @@
-pragma solidity ^0.4.25;
+pragma solidity >=0.7.0 <0.9.0;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
-import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../../node_modules/@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 contract ExerciseC6C {
@@ -71,7 +71,7 @@ contract ExerciseC6C {
     */   
     function isEmployeeRegistered
                             (
-                                string id
+                                string memory id
                             )
                             external
                             view
@@ -86,7 +86,7 @@ contract ExerciseC6C {
 
     function registerEmployee
                                 (
-                                    string id,
+                                    string memory id,
                                     bool isAdmin,
                                     address wallet
                                 )
@@ -107,7 +107,7 @@ contract ExerciseC6C {
 
     function getEmployeeBonus
                             (
-                                string id
+                                string memory id
                             )
                             external
                             view
@@ -119,7 +119,7 @@ contract ExerciseC6C {
 
     function updateEmployee
                                 (
-                                    string id,
+                                    string memory id,
                                     uint256 sales,
                                     uint256 bonus
 
@@ -156,7 +156,7 @@ contract ExerciseC6C {
 
     function addSale
                                 (
-                                    string id,
+                                    string memory id,
                                     uint256 amount
                                 )
                                 external

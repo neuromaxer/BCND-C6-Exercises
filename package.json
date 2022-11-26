@@ -12,9 +12,10 @@
     },
     "author": "Nik Kalyani <nik@kalyani.com> https://www.kalyani.com",
     "devDependencies": {
-        "bignumber": "1.1.0",
-        "openzeppelin-solidity": "^1.10.0",
-        "@truffle/hdwallet-provider": "^2.1.1"
+        "@truffle/hdwallet-provider": "^2.1.1",
+        "bignumber": "1.1.0"
     },
-    "dependencies": {}
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.8.0"
+    }
 }
