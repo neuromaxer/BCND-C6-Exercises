@@ -6,6 +6,7 @@ contract ExerciseC6A {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    uint constant M = 2;  // multi-sig approval threshold
 
     struct UserProfile {
         bool isRegistered;
@@ -15,6 +16,9 @@ contract ExerciseC6A {
     address private contractOwner;                  // Account used to deploy contract
     mapping(address => UserProfile) userProfiles;   // Mapping for storing user profiles
 
+    bool public operational = true;
+
+    address[] approvedArr;
 
 
     /********************************************************************************************/
@@ -51,6 +55,11 @@ contract ExerciseC6A {
         _;
     }
 
+    modifier requireIsOperational() {
+        require(operational, "Contract is not operational");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -82,6 +91,7 @@ contract ExerciseC6A {
                                     bool isAdmin
                                 )
                                 external
+                                requireIsOperational
                                 requireContractOwner
     {
         require(!userProfiles[account].isRegistered, "User is already registered.");
@@ -90,6 +100,21 @@ contract ExerciseC6A {
                                                 isRegistered: true,
                                                 isAdmin: isAdmin
                                             });
+    }
+
+    function setOperatingStatus(bool mode) external {
+        require(mode != operational, "New mode must be different from current mode");
+        require(userProfiles[msg.sender].isAdmin, "Caller is not an admin");
+
+        for(uint i=0; i<approvedArr.length; i++) {
+            require(approvedArr[i] != msg.sender, "Caller already approved");
+        }
+        approvedArr.push(msg.sender);
+        
+        if (approvedArr.length >= M) {
+            operational = mode;
+            approvedArr = new address[](0);
+        }
     }
 }
 

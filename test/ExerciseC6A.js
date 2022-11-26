@@ -17,5 +17,35 @@ contract("ExerciseC6A", async (accounts) => {
 
         // ASSERT
         assert.equal(result, true, "Contract owner cannot register new user");
+
+        config.exerciseC6A.UserProfiles;
+    });
+
+    it("operation status is changed when multi-party threshold is reached", async () => {
+        let admin1 = accounts[1];
+        let admin2 = accounts[2];
+
+        await config.exerciseC6A.registerUser(admin1, true, {
+            from: config.owner,
+        });
+        await config.exerciseC6A.registerUser(admin2, true, {
+            from: config.owner,
+        });
+
+        let startStatus = await config.exerciseC6A.operational.call();
+        let changeStatus = !startStatus;
+
+        // ACT
+        await config.exerciseC6A.setOperatingStatus(changeStatus, {
+            from: admin1,
+        });
+        await config.exerciseC6A.setOperatingStatus(changeStatus, {
+            from: admin2,
+        });
+
+        let newStatus = await config.exerciseC6A.operational.call();
+
+        // ASSERT
+        assert.equal(changeStatus, newStatus, "Multi-party call failed");
     });
 });
